@@ -1,26 +1,42 @@
 {
-  "name": "obsidian-footnotes",
-  "version": "0.0.2",
-  "description": "",
-  "main": "main.js",
-  "scripts": {
-    "dev": "rollup --config rollup.config.js -w",
-    "build": "rollup --config rollup.config.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
-  "devDependencies": {
-    "@rollup/plugin-commonjs": "^15.1.0",
-    "@rollup/plugin-node-resolve": "^9.0.0",
-    "@rollup/plugin-typescript": "^6.0.0",
-    "@types/lodash": "^4.14.168",
-    "@types/node": "^14.14.2",
-    "lodash": "^4.17.21",
-    "obsidian": "https://github.com/obsidianmd/obsidian-api/tarball/master",
-    "rollup": "^2.32.1",
-    "string.prototype.matchall": "^4.0.4",
-    "tslib": "^2.0.3",
-    "typescript": "^4.0.3"
-  }
+	"name": "obsidian-footnotes",
+	"version": "0.3.0",
+	"description": "Footnote backreference synchronization plugin for Obsidian",
+	"main": "main.js",
+	"scripts": {
+		"dev": "rollup --config rollup.config.js -w",
+		"build": "rollup --config rollup.config.js",
+		"test": "jest",
+		"test:watch": "jest --watch",
+		"test:coverage": "jest --coverage",
+		"test:performance": "jest --testPathPattern=performance",
+		"test:integration": "jest --testPathPattern=integration",
+		"test:unit": "jest --testPathPattern=unit",
+		"benchmark": "node tests/benchmark/run-benchmarks.js"
+	},
+	"keywords": [
+		"obsidian",
+		"footnotes",
+		"markdown",
+		"plugin"
+	],
+	"author": "rolltidehero",
+	"license": "MIT",
+	"devDependencies": {
+		"@testing-library/jest-dom": "^6.6.3",
+		"@types/jest": "^29.5.14",
+		"@types/node": "^16.11.6",
+		"@typescript-eslint/eslint-plugin": "^5.2.0",
+		"@typescript-eslint/parser": "^5.2.0",
+		"builtin-modules": "^3.2.0",
+		"esbuild": "0.13.12",
+		"eslint": "^8.0.1",
+		"jest": "^29.7.0",
+		"jest-environment-jsdom": "^29.7.0",
+		"jsdom": "^26.1.0",
+		"obsidian": "https://github.com/obsidianmd/obsidian-api/tarball/master",
+		"ts-jest": "^29.4.0",
+		"tslib": "2.3.1",
+		"typescript": "4.4.4"
+	}
 }
