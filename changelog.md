@@ -2,6 +2,62 @@
 
 All notable changes to the Obsidian Footnote Backreference Synchronization Plugin will be documented in this file.
 
+## [0.2.0] - 2024-12-19
+
+### Added
+- **User Preferences Panel**
+  - Complete settings tab in Obsidian plugin settings
+  - Enable/disable custom label display toggle
+  - Display style options: brackets, emoji, superscript, plain text
+  - Custom emoji selection for emoji display style
+  - Show both label and number option
+  - Label priority settings: auto, label, number
+  - Performance tuning with adjustable debounce delay (100-1000ms)
+  - Hover effects toggle for backreference interactions
+  - Tooltip display option for enhanced user experience
+  - Real-time settings preview and refresh functionality
+  - Settings persistence between sessions
+
+### Enhanced
+- **Settings Integration**
+  - All backreference functionality now respects user preferences
+  - Dynamic display style application based on settings
+  - Conditional rendering based on enabled/disabled state
+  - Performance optimization through configurable debounce delays
+  - Improved user experience with customizable interactions
+
+### Technical Improvements
+- **Settings Management**
+  - TypeScript interfaces for type-safe settings
+  - Default settings configuration
+  - Automatic settings loading and saving
+  - Real-time settings application without restart
+  - Settings validation and error handling
+
+- **UI/UX Enhancements**
+  - Intuitive settings organization with clear sections
+  - Visual preview of settings effects
+  - Responsive settings controls with proper validation
+  - Accessibility improvements with proper labels and descriptions
+  - Consistent styling with Obsidian's design system
+
+### Files Modified
+- `main.ts` - Added comprehensive settings system and UI
+- `RULES.TASKS.md` - Updated task completion status
+- `changelog.md` - Added new version documentation
+
+### Settings Options
+- **Enable Custom Label Display**: Master toggle for the feature
+- **Display Style**: Choose between brackets, emoji, superscript, or plain text
+- **Custom Emoji**: Set custom emoji for emoji display style
+- **Show Both Label and Number**: Display both label and number simultaneously
+- **Label Priority**: Choose between auto, label, or number priority
+- **Update Delay**: Adjust performance with debounce delay (100-1000ms)
+- **Enable Hover Effects**: Toggle underline effects on hover
+- **Show Tooltips**: Enable tooltip display for backreferences
+
+---
+
 ## [0.1.0] - 2024-12-19
 
 ### Added

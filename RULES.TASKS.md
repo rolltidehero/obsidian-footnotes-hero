@@ -59,12 +59,12 @@
 
 ## 7. User Preferences & Settings Panel (Optional)
 
-- [ ] **NEW: Create plugin settings tab in Obsidian**
-  - [ ] Let users select display style: brackets, emoji, superscript
-  - [ ] Preferences for label vs. number prioritization
-  - [ ] Toggle for enabling/disabling custom label display
-  - [ ] Option to show both label and number
-- [ ] Persist settings between sessions
+- [x] **NEW: Create plugin settings tab in Obsidian**
+  - [x] Let users select display style: brackets, emoji, superscript
+  - [x] Preferences for label vs. number prioritization
+  - [x] Toggle for enabling/disabling custom label display
+  - [x] Option to show both label and number
+- [x] Persist settings between sessions
 
 ## 8. Testing & Quality Assurance
 

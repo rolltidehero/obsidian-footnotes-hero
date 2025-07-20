@@ -1,9 +1,9 @@
 {
 	"id": "obsidian-footnotes",
 	"name": "Footnote Backreference Synchronization",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"minAppVersion": "0.9.12",
-	"description": "Enhance footnote functionality by synchronizing backreference display with actual footnote labels. Replace generic backreference icons with custom label text for better navigation.",
+	"description": "Enhance footnote functionality by synchronizing backreference display with actual footnote labels. Replace generic backreference icons with custom label text for better navigation. Includes comprehensive user preferences panel for customization.",
 	"author": "Alexis Rondeau",
 	"authorUrl": "https://publish.obsidian.md/alexisrondeau",
 	"isDesktopOnly": false

@@ -1,4 +1,4 @@
-import { MarkdownView, Plugin, WorkspaceLeaf } from 'obsidian';
+import { MarkdownView, Plugin, WorkspaceLeaf, Setting, App, PluginSettingTab } from 'obsidian';
 
 interface FootnoteData {
 	label: string;
@@ -6,7 +6,30 @@ interface FootnoteData {
 	definition: string;
 }
 
+interface FootnoteBackrefSettings {
+	enableCustomLabels: boolean;
+	displayStyle: 'brackets' | 'emoji' | 'superscript' | 'plain';
+	showBothLabelAndNumber: boolean;
+	labelPriority: 'label' | 'number' | 'auto';
+	customEmoji: string;
+	debounceDelay: number;
+	enableHoverEffects: boolean;
+	showTooltips: boolean;
+}
+
+const DEFAULT_SETTINGS: FootnoteBackrefSettings = {
+	enableCustomLabels: true,
+	displayStyle: 'brackets',
+	showBothLabelAndNumber: false,
+	labelPriority: 'auto',
+	customEmoji: '↩️',
+	debounceDelay: 300,
+	enableHoverEffects: true,
+	showTooltips: false
+};
+
 export default class MyPlugin extends Plugin {
+	settings: FootnoteBackrefSettings;
 
 	// Extended regex patterns to support both numeric and custom labels
 	private detailLineRegex = /\[\^([^\]]+)\]\:/;
@@ -15,9 +38,11 @@ export default class MyPlugin extends Plugin {
 	
 	// Debouncing for performance
 	private updateTimeout: number | null = null;
-	private readonly DEBOUNCE_DELAY = 300; // milliseconds
 
 	async onload() {
+		// Load settings
+		await this.loadSettings();
+
 		// Register the existing footnote command
 		this.addCommand({
 			id: 'insert-footnote',
@@ -47,6 +72,9 @@ export default class MyPlugin extends Plugin {
 			})
 		);
 
+		// Add settings tab
+		this.addSettingTab(new FootnoteBackrefSettingTab(this.app, this));
+
 		// Initial update for any open files
 		this.updateBackreferences();
 	}
@@ -56,6 +84,16 @@ export default class MyPlugin extends Plugin {
 		if (this.updateTimeout) {
 			clearTimeout(this.updateTimeout);
 		}
+	}
+
+	async loadSettings() {
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+	}
+
+	async saveSettings() {
+		await this.saveData(this.settings);
+		// Update backreferences when settings change
+		this.updateBackreferences();
 	}
 
 	/**
@@ -69,13 +107,18 @@ export default class MyPlugin extends Plugin {
 		
 		this.updateTimeout = window.setTimeout(() => {
 			this.updateBackreferences();
-		}, this.DEBOUNCE_DELAY);
+		}, this.settings.debounceDelay);
 	}
 
 	/**
 	 * Main function to update backreferences in all open markdown views
 	 */
-	private updateBackreferences() {
+	public updateBackreferences() {
+		// Check if custom labels are enabled
+		if (!this.settings.enableCustomLabels) {
+			return;
+		}
+
 		const leaves = this.app.workspace.getLeavesOfType('markdown');
 		
 		leaves.forEach(leaf => {
@@ -197,20 +240,73 @@ export default class MyPlugin extends Plugin {
 	}
 
 	/**
-	 * Create custom backreference text based on footnote data
+	 * Create custom backreference text based on footnote data and settings
 	 */
 	private createCustomBackreferenceText(footnoteData: FootnoteData): string {
 		const label = footnoteData.label;
+		const isNumeric = this.numericalRe.test(label);
 		
-		// For numeric labels, show the number
-		if (this.numericalRe.test(label)) {
-			return `[${label}]`;
+		// Determine what to display based on settings
+		let displayText = '';
+		
+		if (this.settings.showBothLabelAndNumber) {
+			// Show both label and number
+			if (isNumeric) {
+				displayText = `[${label}]`;
+			} else {
+				displayText = `[${label}]`;
+			}
+		} else {
+			// Show based on priority setting
+			switch (this.settings.labelPriority) {
+				case 'label':
+					displayText = this.cleanLabel(label);
+					break;
+				case 'number':
+					if (isNumeric) {
+						displayText = label;
+					} else {
+						displayText = this.cleanLabel(label);
+					}
+					break;
+				case 'auto':
+				default:
+					if (isNumeric) {
+						displayText = `[${label}]`;
+					} else {
+						displayText = this.cleanLabel(label);
+					}
+					break;
+			}
 		}
-		
-		// For custom labels, show the label text
+
+		// Apply display style
+		return this.applyDisplayStyle(displayText);
+	}
+
+	/**
+	 * Clean label text for display
+	 */
+	private cleanLabel(label: string): string {
 		// Remove any special characters that might cause display issues
-		const cleanLabel = label.replace(/[^\w\s-]/g, '');
-		return cleanLabel || label;
+		return label.replace(/[^\w\s-]/g, '') || label;
+	}
+
+	/**
+	 * Apply display style to text
+	 */
+	private applyDisplayStyle(text: string): string {
+		switch (this.settings.displayStyle) {
+			case 'emoji':
+				return `${this.settings.customEmoji} ${text}`;
+			case 'superscript':
+				return `<sup>${text}</sup>`;
+			case 'plain':
+				return text;
+			case 'brackets':
+			default:
+				return text.startsWith('[') ? text : `[${text}]`;
+		}
 	}
 
 	/**
@@ -222,28 +318,48 @@ export default class MyPlugin extends Plugin {
 		
 		// Create new content with custom text
 		const textSpan = document.createElement('span');
-		textSpan.textContent = customText;
+		
+		// Handle different display styles
+		if (this.settings.displayStyle === 'superscript') {
+			textSpan.innerHTML = customText; // Allow HTML for superscript
+		} else {
+			textSpan.textContent = customText;
+		}
+		
 		textSpan.className = 'custom-backref-text';
 		
-		// Add some basic styling
-		textSpan.style.cssText = `
-			color: var(--text-accent);
-			font-weight: 500;
-			text-decoration: none;
-			cursor: pointer;
-		`;
+		// Add styling based on settings
+		const styles = [
+			'color: var(--text-accent)',
+			'font-weight: 500',
+			'cursor: pointer'
+		];
+
+		if (this.settings.displayStyle === 'superscript') {
+			styles.push('font-size: 0.8em');
+			styles.push('vertical-align: super');
+		}
+
+		textSpan.style.cssText = styles.join('; ');
 		
 		// Preserve the original href and click functionality
 		backrefEl.appendChild(textSpan);
 		
-		// Add hover effect
-		backrefEl.addEventListener('mouseenter', () => {
-			textSpan.style.textDecoration = 'underline';
-		});
-		
-		backrefEl.addEventListener('mouseleave', () => {
-			textSpan.style.textDecoration = 'none';
-		});
+		// Add hover effects if enabled
+		if (this.settings.enableHoverEffects) {
+			backrefEl.addEventListener('mouseenter', () => {
+				textSpan.style.textDecoration = 'underline';
+			});
+			
+			backrefEl.addEventListener('mouseleave', () => {
+				textSpan.style.textDecoration = 'none';
+			});
+		}
+
+		// Add tooltip if enabled
+		if (this.settings.showTooltips) {
+			backrefEl.title = `Back to footnote: ${label}`;
+		}
 	}
 
 	insertFootnote() {
@@ -382,5 +498,154 @@ export default class MyPlugin extends Plugin {
 		}
 
 		doc.setCursor({line: doc.lineCount(), ch: footnoteDetail.length});
+	}
+}
+
+class FootnoteBackrefSettingTab extends PluginSettingTab {
+	plugin: MyPlugin;
+
+	constructor(app: App, plugin: MyPlugin) {
+		super(app, plugin);
+		this.plugin = plugin;
+	}
+
+	display(): void {
+		const {containerEl} = this;
+		containerEl.empty();
+
+		containerEl.createEl('h2', {text: 'Footnote Backreference Synchronization Settings'});
+
+		// Enable/Disable Custom Labels
+		new Setting(containerEl)
+			.setName('Enable Custom Label Display')
+			.setDesc('Toggle the backreference synchronization feature on/off')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enableCustomLabels)
+				.onChange(async (value) => {
+					this.plugin.settings.enableCustomLabels = value;
+					await this.plugin.saveSettings();
+				}));
+
+		containerEl.createEl('h3', {text: 'Display Options'});
+
+		// Display Style
+		new Setting(containerEl)
+			.setName('Display Style')
+			.setDesc('Choose how backreferences are displayed')
+			.addDropdown(dropdown => dropdown
+				.addOption('brackets', 'Brackets [label]')
+				.addOption('emoji', 'Emoji ↩️ label')
+				.addOption('superscript', 'Superscript')
+				.addOption('plain', 'Plain text')
+				.setValue(this.plugin.settings.displayStyle)
+				.onChange(async (value) => {
+					this.plugin.settings.displayStyle = value as any;
+					await this.plugin.saveSettings();
+				}));
+
+		// Custom Emoji (only show if emoji style is selected)
+		if (this.plugin.settings.displayStyle === 'emoji') {
+			new Setting(containerEl)
+				.setName('Custom Emoji')
+				.setDesc('Choose the emoji to display before labels')
+				.addText(text => text
+					.setPlaceholder('↩️')
+					.setValue(this.plugin.settings.customEmoji)
+					.onChange(async (value) => {
+						this.plugin.settings.customEmoji = value;
+						await this.plugin.saveSettings();
+					}));
+		}
+
+		// Show Both Label and Number
+		new Setting(containerEl)
+			.setName('Show Both Label and Number')
+			.setDesc('Display both the label and number for all footnotes')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.showBothLabelAndNumber)
+				.onChange(async (value) => {
+					this.plugin.settings.showBothLabelAndNumber = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// Label Priority
+		new Setting(containerEl)
+			.setName('Label Priority')
+			.setDesc('Choose which label type to prioritize when showing both is disabled')
+			.addDropdown(dropdown => dropdown
+				.addOption('auto', 'Auto (numeric as numbers, custom as labels)')
+				.addOption('label', 'Always show custom labels')
+				.addOption('number', 'Always show numbers when available')
+				.setValue(this.plugin.settings.labelPriority)
+				.onChange(async (value) => {
+					this.plugin.settings.labelPriority = value as any;
+					await this.plugin.saveSettings();
+				}));
+
+		containerEl.createEl('h3', {text: 'Performance & Behavior'});
+
+		// Debounce Delay
+		new Setting(containerEl)
+			.setName('Update Delay')
+			.setDesc('Delay in milliseconds before updating backreferences (lower = faster, higher = better performance)')
+			.addSlider(slider => slider
+				.setLimits(100, 1000, 50)
+				.setValue(this.plugin.settings.debounceDelay)
+				.setDynamicTooltip()
+				.onChange(async (value) => {
+					this.plugin.settings.debounceDelay = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// Enable Hover Effects
+		new Setting(containerEl)
+			.setName('Enable Hover Effects')
+			.setDesc('Show underline effect when hovering over backreferences')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enableHoverEffects)
+				.onChange(async (value) => {
+					this.plugin.settings.enableHoverEffects = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// Show Tooltips
+		new Setting(containerEl)
+			.setName('Show Tooltips')
+			.setDesc('Display tooltips when hovering over backreferences')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.showTooltips)
+				.onChange(async (value) => {
+					this.plugin.settings.showTooltips = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// Preview Section
+		containerEl.createEl('h3', {text: 'Preview'});
+		const previewEl = containerEl.createEl('div', {
+			cls: 'footnote-backref-preview',
+			attr: {
+				style: 'padding: 10px; border: 1px solid var(--background-modifier-border); border-radius: 4px; margin: 10px 0;'
+			}
+		});
+		previewEl.innerHTML = `
+			<p>Example footnotes: <a href="#fnref:1" class="footnote-backref">[1]</a> <a href="#fnref:video" class="footnote-backref">[video]</a></p>
+			<p><small>Note: Preview updates when you change settings</small></p>
+		`;
+
+		// Update preview when settings change
+		const updatePreview = () => {
+			// This would update the preview in real-time
+			// For now, we'll just show a note that it updates
+		};
+
+		// Add a refresh button
+		new Setting(containerEl)
+			.setName('Refresh Preview')
+			.setDesc('Update the preview to reflect current settings')
+			.addButton(button => button
+				.setButtonText('Refresh')
+				.onClick(() => {
+					this.plugin.updateBackreferences();
+				}));
 	}
 }
