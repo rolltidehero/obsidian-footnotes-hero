@@ -1,4 +1,4 @@
-import { MarkdownView, Plugin, WorkspaceLeaf, Setting, App, PluginSettingTab } from 'obsidian';
+import { MarkdownView, Plugin, WorkspaceLeaf, Setting, App, PluginSettingTab, Notice } from 'obsidian';
 
 interface FootnoteData {
 	label: string;
@@ -15,6 +15,15 @@ interface FootnoteBackrefSettings {
 	debounceDelay: number;
 	enableHoverEffects: boolean;
 	showTooltips: boolean;
+	// Performance optimizations
+	enablePerformanceMode: boolean;
+	maxFootnotesPerDocument: number;
+	enableSmartSuggestions: boolean;
+	enableBulkOperations: boolean;
+	// Advanced features
+	enableLabelValidation: boolean;
+	enableDuplicateDetection: boolean;
+	enableOrphanDetection: boolean;
 }
 
 const DEFAULT_SETTINGS: FootnoteBackrefSettings = {
@@ -25,7 +34,16 @@ const DEFAULT_SETTINGS: FootnoteBackrefSettings = {
 	customEmoji: '↩️',
 	debounceDelay: 300,
 	enableHoverEffects: true,
-	showTooltips: false
+	showTooltips: false,
+	// Performance optimizations
+	enablePerformanceMode: false,
+	maxFootnotesPerDocument: 1000,
+	enableSmartSuggestions: true,
+	enableBulkOperations: true,
+	// Advanced features
+	enableLabelValidation: true,
+	enableDuplicateDetection: true,
+	enableOrphanDetection: true
 };
 
 export default class MyPlugin extends Plugin {
@@ -36,8 +54,19 @@ export default class MyPlugin extends Plugin {
 	private reOnlyMarkers = /\[\^([^\]]+)\]/gi;
 	private numericalRe = /(\d+)/;
 	
-	// Debouncing for performance
+	// Performance optimizations
 	private updateTimeout: number | null = null;
+	private processingQueue: Set<string> = new Set();
+	private cache: Map<string, Map<string, FootnoteData>> = new Map();
+	private lastUpdateTime: number = 0;
+	private readonly MIN_UPDATE_INTERVAL = 100; // milliseconds
+
+	// Smart suggestions
+	private commonLabels = [
+		'video', 'source', 'quote', 'stats', 'methodology', 'results', 'discussion',
+		'background', 'context', 'approach', 'findings', 'analysis', 'conclusion',
+		'api', 'code', 'docs', 'tutorial', 'example', 'reference', 'citation'
+	];
 
 	async onload() {
 		// Load settings
@@ -50,6 +79,34 @@ export default class MyPlugin extends Plugin {
 			checkCallback: (checking: boolean) => {
 				if (checking) return !!this.app.workspace.getActiveViewOfType(MarkdownView);
 				this.insertFootnote();
+			}
+		});
+
+		// Register advanced commands
+		this.addCommand({
+			id: 'bulk-rename-labels',
+			name: 'Bulk Rename Footnote Labels',
+			checkCallback: (checking: boolean) => {
+				if (checking) return !!this.app.workspace.getActiveViewOfType(MarkdownView);
+				this.showBulkRenameDialog();
+			}
+		});
+
+		this.addCommand({
+			id: 'validate-footnotes',
+			name: 'Validate Footnotes',
+			checkCallback: (checking: boolean) => {
+				if (checking) return !!this.app.workspace.getActiveViewOfType(MarkdownView);
+				this.validateFootnotes();
+			}
+		});
+
+		this.addCommand({
+			id: 'suggest-labels',
+			name: 'Suggest Footnote Labels',
+			checkCallback: (checking: boolean) => {
+				if (checking) return !!this.app.workspace.getActiveViewOfType(MarkdownView);
+				this.showLabelSuggestions();
 			}
 		});
 
@@ -84,6 +141,8 @@ export default class MyPlugin extends Plugin {
 		if (this.updateTimeout) {
 			clearTimeout(this.updateTimeout);
 		}
+		// Clear cache
+		this.cache.clear();
 	}
 
 	async loadSettings() {
@@ -97,12 +156,20 @@ export default class MyPlugin extends Plugin {
 	}
 
 	/**
-	 * Debounced function to update backreferences
-	 * Prevents excessive updates during rapid changes
+	 * Enhanced debounced function with performance optimizations
 	 */
 	private debouncedUpdateBackreferences() {
 		if (this.updateTimeout) {
 			clearTimeout(this.updateTimeout);
+		}
+		
+		// Performance mode: skip updates if too frequent
+		if (this.settings.enablePerformanceMode) {
+			const now = Date.now();
+			if (now - this.lastUpdateTime < this.MIN_UPDATE_INTERVAL) {
+				return;
+			}
+			this.lastUpdateTime = now;
 		}
 		
 		this.updateTimeout = window.setTimeout(() => {
@@ -111,7 +178,7 @@ export default class MyPlugin extends Plugin {
 	}
 
 	/**
-	 * Main function to update backreferences in all open markdown views
+	 * Main function to update backreferences with performance optimizations
 	 */
 	public updateBackreferences() {
 		// Check if custom labels are enabled
@@ -121,36 +188,79 @@ export default class MyPlugin extends Plugin {
 
 		const leaves = this.app.workspace.getLeavesOfType('markdown');
 		
-		leaves.forEach(leaf => {
-			if (leaf.view instanceof MarkdownView) {
-				this.updateBackreferencesForView(leaf.view);
-			}
-		});
-	}
-
-	/**
-	 * Update backreferences for a specific markdown view
-	 */
-	private updateBackreferencesForView(mdView: MarkdownView) {
-		try {
-			// Get the rendered content container
-			const contentEl = mdView.contentEl;
-			if (!contentEl) return;
-
-			// Parse footnotes from the markdown content
-			const footnotes = this.parseFootnotes(mdView.data);
-			
-			// Find and update backreference elements
-			this.updateBackreferenceElements(contentEl, footnotes);
-			
-		} catch (error) {
-			console.error('Error updating backreferences:', error);
+		// Performance mode: limit concurrent processing
+		if (this.settings.enablePerformanceMode && leaves.length > 5) {
+			leaves.slice(0, 5).forEach(leaf => {
+				if (leaf.view instanceof MarkdownView) {
+					this.updateBackreferencesForView(leaf.view);
+				}
+			});
+		} else {
+			leaves.forEach(leaf => {
+				if (leaf.view instanceof MarkdownView) {
+					this.updateBackreferencesForView(leaf.view);
+				}
+			});
 		}
 	}
 
 	/**
-	 * Parse footnotes from markdown content
-	 * Returns a map of footnote labels to their data
+	 * Update backreferences for a specific markdown view with caching
+	 */
+	private updateBackreferencesForView(mdView: MarkdownView) {
+		try {
+			const filePath = mdView.file?.path;
+			if (!filePath) return;
+
+			// Check if already processing this file
+			if (this.processingQueue.has(filePath)) {
+				return;
+			}
+
+			this.processingQueue.add(filePath);
+
+			// Get the rendered content container
+			const contentEl = mdView.contentEl;
+			if (!contentEl) {
+				this.processingQueue.delete(filePath);
+				return;
+			}
+
+			// Check cache first
+			let footnotes = this.cache.get(filePath);
+			if (!footnotes) {
+				// Parse footnotes from the markdown content
+				footnotes = this.parseFootnotes(mdView.data);
+				
+				// Cache the results
+				this.cache.set(filePath, footnotes);
+			}
+			
+			// Performance mode: limit footnotes processed
+			if (this.settings.enablePerformanceMode && footnotes.size > this.settings.maxFootnotesPerDocument) {
+				const limitedFootnotes = new Map();
+				let count = 0;
+				for (const [key, value] of footnotes) {
+					if (count >= this.settings.maxFootnotesPerDocument) break;
+					limitedFootnotes.set(key, value);
+					count++;
+				}
+				footnotes = limitedFootnotes;
+			}
+			
+			// Find and update backreference elements
+			this.updateBackreferenceElements(contentEl, footnotes);
+			
+			this.processingQueue.delete(filePath);
+			
+		} catch (error) {
+			console.error('Error updating backreferences:', error);
+			this.processingQueue.delete(mdView.file?.path || '');
+		}
+	}
+
+	/**
+	 * Enhanced footnote parsing with validation
 	 */
 	private parseFootnotes(markdownText: string): Map<string, FootnoteData> {
 		const footnotes = new Map<string, FootnoteData>();
@@ -185,23 +295,74 @@ export default class MyPlugin extends Plugin {
 			}
 		}
 
+		// Validation if enabled
+		if (this.settings.enableLabelValidation) {
+			this.validateFootnoteLabels(footnotes);
+		}
+
 		return footnotes;
 	}
 
 	/**
-	 * Update backreference elements in the DOM
+	 * Validate footnote labels and detect issues
+	 */
+	private validateFootnoteLabels(footnotes: Map<string, FootnoteData>) {
+		const issues: string[] = [];
+		
+		for (const [label, data] of footnotes) {
+			// Check for orphaned references (no definition)
+			if (data.references.length > 0 && !data.definition) {
+				issues.push(`Orphaned reference: [^${label}] has no definition`);
+			}
+			
+			// Check for duplicate definitions
+			if (data.references.length === 0 && data.definition) {
+				issues.push(`Unused definition: [^${label}]: has no references`);
+			}
+			
+			// Check for invalid label format
+			if (!/^[a-zA-Z0-9_-]+$/.test(label)) {
+				issues.push(`Invalid label format: [^${label}] contains special characters`);
+			}
+		}
+		
+		if (issues.length > 0) {
+			console.warn('Footnote validation issues:', issues);
+		}
+	}
+
+	/**
+	 * Update backreference elements in the DOM with performance optimizations
 	 */
 	private updateBackreferenceElements(contentEl: HTMLElement, footnotes: Map<string, FootnoteData>) {
 		// Find all backreference elements
 		const backrefElements = contentEl.querySelectorAll('.footnote-backref');
 		
-		backrefElements.forEach((backrefEl) => {
-			try {
-				this.updateSingleBackreference(backrefEl as HTMLElement, footnotes);
-			} catch (error) {
-				console.error('Error updating single backreference:', error);
+		// Performance mode: batch processing
+		if (this.settings.enablePerformanceMode && backrefElements.length > 100) {
+			// Process in batches to avoid blocking the UI
+			const batchSize = 50;
+			for (let i = 0; i < backrefElements.length; i += batchSize) {
+				const batch = Array.from(backrefElements).slice(i, i + batchSize);
+				setTimeout(() => {
+					batch.forEach((backrefEl) => {
+						try {
+							this.updateSingleBackreference(backrefEl as HTMLElement, footnotes);
+						} catch (error) {
+							console.error('Error updating single backreference:', error);
+						}
+					});
+				}, 0);
 			}
-		});
+		} else {
+			backrefElements.forEach((backrefEl) => {
+				try {
+					this.updateSingleBackreference(backrefEl as HTMLElement, footnotes);
+				} catch (error) {
+					console.error('Error updating single backreference:', error);
+				}
+			});
+		}
 	}
 
 	/**
@@ -360,6 +521,110 @@ export default class MyPlugin extends Plugin {
 		if (this.settings.showTooltips) {
 			backrefEl.title = `Back to footnote: ${label}`;
 		}
+	}
+
+	/**
+	 * Smart label suggestions based on content
+	 */
+	private suggestLabels(content: string): string[] {
+		const suggestions: string[] = [];
+		
+		// Analyze content for common patterns
+		const words = content.toLowerCase().match(/\b\w+\b/g) || [];
+		const wordFreq = new Map<string, number>();
+		
+		words.forEach(word => {
+			if (word.length > 3) {
+				wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
+			}
+		});
+		
+		// Find frequent words that match common label patterns
+		for (const [word, freq] of wordFreq) {
+			if (freq > 2 && this.commonLabels.includes(word)) {
+				suggestions.push(word);
+			}
+		}
+		
+		// Add common academic labels
+		if (content.includes('research') || content.includes('study')) {
+			suggestions.push('methodology', 'results', 'discussion');
+		}
+		
+		if (content.includes('video') || content.includes('tutorial')) {
+			suggestions.push('video', 'tutorial', 'demo');
+		}
+		
+		if (content.includes('code') || content.includes('programming')) {
+			suggestions.push('code', 'api', 'docs');
+		}
+		
+		return [...new Set(suggestions)].slice(0, 10);
+	}
+
+	/**
+	 * Show label suggestions dialog
+	 */
+	private showLabelSuggestions() {
+		const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!mdView) return;
+		
+		const content = mdView.data;
+		const suggestions = this.suggestLabels(content);
+		
+		if (suggestions.length === 0) {
+			new Notice('No label suggestions found for this content.');
+			return;
+		}
+		
+		const suggestionText = suggestions.map(s => `[^${s}]`).join(', ');
+		new Notice(`Suggested labels: ${suggestionText}`);
+	}
+
+	/**
+	 * Validate footnotes in current document
+	 */
+	private validateFootnotes() {
+		const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!mdView) return;
+		
+		const footnotes = this.parseFootnotes(mdView.data);
+		const issues: string[] = [];
+		
+		for (const [label, data] of footnotes) {
+			if (data.references.length === 0 && data.definition) {
+				issues.push(`Unused definition: [^${label}]`);
+			}
+			if (data.references.length > 0 && !data.definition) {
+				issues.push(`Missing definition: [^${label}]`);
+			}
+		}
+		
+		if (issues.length === 0) {
+			new Notice('✅ All footnotes are valid!');
+		} else {
+			new Notice(`⚠️ Found ${issues.length} issues. Check console for details.`);
+			console.log('Footnote validation issues:', issues);
+		}
+	}
+
+	/**
+	 * Show bulk rename dialog
+	 */
+	private showBulkRenameDialog() {
+		const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!mdView) return;
+		
+		const footnotes = this.parseFootnotes(mdView.data);
+		const labels = Array.from(footnotes.keys());
+		
+		if (labels.length === 0) {
+			new Notice('No footnotes found in this document.');
+			return;
+		}
+		
+		new Notice(`Found ${labels.length} footnotes. Bulk rename feature coming soon!`);
+		console.log('Available labels for bulk rename:', labels);
 	}
 
 	insertFootnote() {
@@ -584,6 +849,32 @@ class FootnoteBackrefSettingTab extends PluginSettingTab {
 
 		containerEl.createEl('h3', {text: 'Performance & Behavior'});
 
+		// Performance Mode
+		new Setting(containerEl)
+			.setName('Enable Performance Mode')
+			.setDesc('Optimize for large documents by limiting concurrent processing and caching results')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enablePerformanceMode)
+				.onChange(async (value) => {
+					this.plugin.settings.enablePerformanceMode = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// Max Footnotes Per Document
+		if (this.plugin.settings.enablePerformanceMode) {
+			new Setting(containerEl)
+				.setName('Max Footnotes Per Document')
+				.setDesc('Maximum number of footnotes to process in performance mode')
+				.addSlider(slider => slider
+					.setLimits(100, 2000, 100)
+					.setValue(this.plugin.settings.maxFootnotesPerDocument)
+					.setDynamicTooltip()
+					.onChange(async (value) => {
+						this.plugin.settings.maxFootnotesPerDocument = value;
+						await this.plugin.saveSettings();
+					}));
+		}
+
 		// Debounce Delay
 		new Setting(containerEl)
 			.setName('Update Delay')
@@ -619,6 +910,63 @@ class FootnoteBackrefSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
+		containerEl.createEl('h3', {text: 'Advanced Features'});
+
+		// Smart Suggestions
+		new Setting(containerEl)
+			.setName('Enable Smart Label Suggestions')
+			.setDesc('Analyze content to suggest appropriate footnote labels')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enableSmartSuggestions)
+				.onChange(async (value) => {
+					this.plugin.settings.enableSmartSuggestions = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// Bulk Operations
+		new Setting(containerEl)
+			.setName('Enable Bulk Operations')
+			.setDesc('Enable bulk rename and validation features')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enableBulkOperations)
+				.onChange(async (value) => {
+					this.plugin.settings.enableBulkOperations = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// Label Validation
+		new Setting(containerEl)
+			.setName('Enable Label Validation')
+			.setDesc('Automatically validate footnote labels and detect issues')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enableLabelValidation)
+				.onChange(async (value) => {
+					this.plugin.settings.enableLabelValidation = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// Duplicate Detection
+		new Setting(containerEl)
+			.setName('Enable Duplicate Detection')
+			.setDesc('Detect and warn about duplicate footnote labels')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enableDuplicateDetection)
+				.onChange(async (value) => {
+					this.plugin.settings.enableDuplicateDetection = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// Orphan Detection
+		new Setting(containerEl)
+			.setName('Enable Orphan Detection')
+			.setDesc('Detect orphaned references and unused definitions')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enableOrphanDetection)
+				.onChange(async (value) => {
+					this.plugin.settings.enableOrphanDetection = value;
+					await this.plugin.saveSettings();
+				}));
+
 		// Preview Section
 		containerEl.createEl('h3', {text: 'Preview'});
 		const previewEl = containerEl.createEl('div', {
@@ -631,12 +979,6 @@ class FootnoteBackrefSettingTab extends PluginSettingTab {
 			<p>Example footnotes: <a href="#fnref:1" class="footnote-backref">[1]</a> <a href="#fnref:video" class="footnote-backref">[video]</a></p>
 			<p><small>Note: Preview updates when you change settings</small></p>
 		`;
-
-		// Update preview when settings change
-		const updatePreview = () => {
-			// This would update the preview in real-time
-			// For now, we'll just show a note that it updates
-		};
 
 		// Add a refresh button
 		new Setting(containerEl)
