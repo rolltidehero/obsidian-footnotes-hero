@@ -1,0 +1,116 @@
+---
+description: Please review and confirm these next steps, or suggest adjustments before implementation continues.
+globs:
+alwaysApply: false
+---
+
+# Project Update: Obsidian Footnote Backreference Synchronization Plugin
+
+## Change Log (`changelog.md`)
+
+**2025-07-19 22:14 CDT**
+- Reviewed and combined protocol for ongoing project tracking.
+- Outlined improvements and consolidation steps based on latest feedback.
+- Added recommendations for versioning, link validation, and refined next steps section.
+- Enhanced documentation and error-checking requirements.
+- Proposed more efficient handling of suggestions and summary redundancies.
+
+**2025-07-19 22:17 CDT**
+- Fixed typos.
+
+## Suggestions (`suggestions.md`)
+
+**Frontend**
+1. Implement an in-app panel that previews footnote backreferences as they update.
+2. Add a sidebar widget for users to manage custom footnote labels directly.
+3. Integrate in-line error highlighting for duplicate or orphaned footnotes.
+4. Enable one-click toggling of display styles for backreferences (brackets, superscripts, etc.).
+5. Use a notification bar to alert when footnote sync requires user attention or update.
+
+**Backend**
+1. Refactor the parsing module for both regex and AST-based detection of footnotes.
+2. Develop a debounced event handler to optimize performance during mass edits.
+3. Build a logging service to track parsing or sync errors for review.
+4. Implement a state management layer to keep label mappings cache-coherent during edits.
+5. Add test coverage for every sync edge case (add, remove, reorder, rename footnotes).
+
+**Trending/Other**
+1. Establish periodic, automated backups for all project markdown log files.
+2. Offer opt-in user analytics (anonymized) to prioritize new features.
+3. Explore AI-powered suggestions for label naming based on note context.
+4. Integrate link validation tools to catch broken references in suggestions and components lists.
+5. Add "lessons learned" or feedback captures to the changelog after each major milestone.
+
+## Components Inventory (`components.md`)
+
+| Component Name      | Usage Location         | Source/Library   | Description                                    |
+|---------------------|-----------------------|------------------|------------------------------------------------|
+| FootnoteParser      | Parsing Module        | Custom           | Extracts and maps all footnote references/defs |
+| BackrefSynchronizer | Rendering Pipeline    | Custom           | Updates backreference icon/label in view       |
+| SettingsPanel       | Obsidian Settings     | Custom           | UI for display preferences and labeling styles |
+| NavigationLogic     | Editor/Markdown View  | Existing Plugin  | Allows jumping between refs and defs           |
+| ErrorLogger         | Background Utility    | Custom           | Logs parsing and sync errors                   |
+| StyleToggler        | UI Widget             | Custom           | Lets user quickly switch backref display style |
+
+## To-Do Checklist (`todo.md`)
+
+- [x] Setup environment (Node.js/npm, TS, rollup, test vault)
+- [x] Scaffold core plugin and register commands
+- [x] Parse numeric footnotes and define navigation logic
+- [ ] Extend parser for custom label support
+    - [ ] Update regex patterns
+    - [ ] Handle validation and malformed cases
+- [ ] Implement DOM manipulation for dynamic label replacement
+    - [ ] Map each `.footnote-backref` to the correct label
+    - [ ] Retain navigation function/click targets
+    - [ ] Test with numeric and custom labels
+- [ ] Real-time sync logic
+    - [ ] Event listeners for note changes/view switches
+    - [ ] Debounce sync logic
+- [ ] Add plugin settings UI
+    - [ ] Toggle styling options (brackets, icons, superscript)
+    - [ ] Save/load preferences
+- [ ] Comprehensive testing
+    - [ ] Cross-platform (Windows/Mac/Linux) test
+    - [ ] Performance with large notes
+    - [ ] Edge case coverage (duplicates, orphans, malformed)
+- [ ] Documentation
+    - [ ] Update with new features, screenshots, before/after visuals
+    - [ ] Usage and troubleshooting instructions
+- [ ] Maintenance planning
+    - [ ] Setup versioned backups
+    - [ ] Add user feedback sections
+
+## Project Plan Summary
+
+- Every change is documented in a cumulative, time-stamped log.
+- Suggestions are continually appended and structured for clarity.
+- Components are tracked with detailed usage and source metadata for easy cross-reference.
+- To-dos are maintained as a checked checklist for visibility and task management.
+- Error checking is baked into every session, ensuring robust documentation.
+
+### Summary Steps to Completion
+
+- Extend current parser to support custom and numeric labels robustly.
+- Build DOM-sync logic for real-time, accurate label rendering in all views.
+- Integrate responsive event handling to ensure footnote sync stays accurate with all edits.
+- Provide in-app customization for style preferences and advanced settings.
+- Run comprehensive testing (unit, integration, cross-platform, edge cases).
+- Continually update documentation, components, and feedback capture.
+
+## Immediate Next Steps
+
+1. **Finish parser extension for custom label support**  
+    - Finalize regex/AST changes; test with `[video]`, `[source]`, etc.
+    - Validate all labels, logging any errors/warnings.
+2. **Begin DOM manipulation implementation**  
+    - Inject correct label after each `.footnote-backref` in rendered view.
+    - Retain reference navigation and click targets.
+3. **Setup real-time synchronization hooks**  
+    - Register event listeners for editing, view switching, and file saves.
+    - Debounce update logic for performance.
+4. **Develop settings UI for user customization**  
+    - Bracket/emoji/superscript options, save/load preferences.
+5. **Prepare targeted tests for new features and edge cases**
+
+Please review and confirm these next steps, or suggest adjustments before implementation continues.

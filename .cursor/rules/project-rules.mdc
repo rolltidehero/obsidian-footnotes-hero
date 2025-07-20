@@ -1,0 +1,65 @@
+---
+description: This rules file provides everything an AI assistant needs to understand the project context, current state, development priorities, and implementation guidelines. It ensures consistent development practices and helps maintain focus on the core goals of the project.
+globs:
+alwaysApply: false
+---
+
+## **🚀 How to Use This Rules File:**
+
+### **For AI Assistants:**
+1. **Reference this file** when starting any development task
+2. **Check current state** before suggesting changes
+3. **Follow priority order** when implementing features
+4. **Adhere to guidelines** for code quality and performance
+5. **Use quick reference** for common tasks
+
+### **For Developers:**
+1. **Read the overview** to understand the project
+2. **Check what's missing** before starting work
+3. **Follow implementation rules** for consistency
+4. **Use testing requirements** for quality assurance
+5. **Reference success criteria** to measure progress
+
+## **🎯 Key Benefits of This Rules File:**
+
+### **1. Clear Project Context**
+- **Project Overview**: Explains what the plugin does and why it exists
+- **Current State**: Shows what's built vs. what's missing
+- **Core Goal**: Emphasizes the main missing functionality (backreference synchronization)
+
+### **2. Development Guidelines**
+- **Code Structure**: Clear file organization and dependencies
+- **Technical Requirements**: Performance, compatibility, error handling priorities
+- **Best Practices**: Obsidian plugin development standards
+
+### **3. Implementation Roadmap**
+- **Priority Levels**: HIGH/MEDIUM/LOW priority features
+- **Sequential Order**: Logical implementation sequence
+- **Dependencies**: What needs to be built first
+
+### **4. Code Implementation Rules**
+- **When Adding Features**: Guidelines for new development
+- **When Modifying Code**: Rules for changing existing functionality
+- **DOM Manipulation**: Specific guidelines for the core feature
+- **Event Handling**: Performance and memory management rules
+
+### **5. Quality Assurance**
+- **Testing Requirements**: Unit, integration, and performance tests
+- **Documentation Standards**: Code and user documentation requirements
+- **Release Process**: Pre-release checklist and steps
+
+### **6. Common Pitfalls**
+- **Performance Issues**: What to avoid for speed
+- **Compatibility Issues**: How to maintain compatibility
+- **User Experience Issues**: UX best practices
+
+### **7. Success Criteria**
+- **Technical Success**: Measurable technical goals
+- **User Success**: User experience objectives
+- **Community Success**: Community adoption targets
+
+### **8. Quick Reference**
+- **Key Files**: Important files and their purposes
+- **Key Commands**: Development and build commands
+- **Key Classes**: Important TypeScript classes
+- **Key Events**: Obsidian events to listen for
