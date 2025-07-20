@@ -1,9 +1,9 @@
 {
 	"id": "obsidian-footnotes-hero",
 	"name": "Footnote Backreference Synchronization",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"minAppVersion": "0.9.12",
-	"description": "Transform your footnote experience by replacing generic backreference icons with actual footnote labels. Features performance optimizations for large documents, smart label suggestions, bulk operations, and comprehensive validation tools.",
+	"description": "Transform your footnote experience by replacing generic backreference icons with actual footnote labels. Features comprehensive testing framework, performance optimizations for large documents, smart label suggestions, bulk operations, and extensive validation tools.",
 	"author": "rolltidehero",
 	"authorUrl": "https://github.com/rolltidehero",
 	"isDesktopOnly": false
