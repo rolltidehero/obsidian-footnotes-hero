@@ -32,29 +32,29 @@
 - [x] Parse all footnote definitions at the bottom of the note
 - [x] Map each inline reference to its definition
 - [x] Handle duplicates, orphans, and incorrect labels
-- [x] **NEW: Extend parsing to support custom footnote labels**
-  - [x] Update regex patterns to handle non-numeric labels (`[^video]`, `[^source]`, etc.)
-  - [x] Modify auto-incrementing logic to work with custom labels
-  - [x] Add validation for custom label formats
+- [ ] **NEW: Extend parsing to support custom footnote labels**
+  - [ ] Update regex patterns to handle non-numeric labels (`[^video]`, `[^source]`, etc.)
+  - [ ] Modify auto-incrementing logic to work with custom labels
+  - [ ] Add validation for custom label formats
 - [ ] Write unit tests for parsing correctness
 
 ## 5. DOM Manipulation & Display Synchronization
 
-- [x] **NEW: Implement the core backreference synchronization feature**
-  - [x] Locate `.footnote-backref` nodes in the rendered view
-  - [x] Replace default backreference icons with actual reference label (`[^1]`, `[^video]`, etc.)
-  - [x] Ensure backreferences remain clickable
-  - [x] Support live DOM updates on document changes
-  - [x] Handle both numeric and custom footnote labels
-  - [x] Add fallback for when custom labels can't be displayed
+- [ ] **NEW: Implement the core backreference synchronization feature**
+  - [ ] Locate `.footnote-backref` nodes in the rendered view
+  - [ ] Replace default backreference icons with actual reference label (`[^1]`, `[^video]`, etc.)
+  - [ ] Ensure backreferences remain clickable
+  - [ ] Support live DOM updates on document changes
+  - [ ] Handle both numeric and custom footnote labels
+  - [ ] Add fallback for when custom labels can't be displayed
 
 ## 6. Real-Time Synchronization & Event Handling
 
-- [x] **NEW: Add real-time synchronization for backreferences**
-  - [x] Listen for file edit, save, and Obsidian workspace events
-  - [x] Debounce frequent updates to minimize performance impact
-  - [x] Automatically re-run parsing and DOM synchronization after changes
-  - [x] Test dynamic updating during rapid typing and large edits
+- [ ] **NEW: Add real-time synchronization for backreferences**
+  - [ ] Listen for file edit, save, and Obsidian workspace events
+  - [ ] Debounce frequent updates to minimize performance impact
+  - [ ] Automatically re-run parsing and DOM synchronization after changes
+  - [ ] Test dynamic updating during rapid typing and large edits
   - [ ] Handle edge cases like deleted footnotes, reordered footnotes
 
 ## 7. User Preferences & Settings Panel (Optional)
@@ -98,11 +98,11 @@
 
 ## 11. **NEW: Integration with Existing Features**
 
-- [x] **NEW: Ensure compatibility with existing footnote navigation**
-  - [x] Test that backreference synchronization works with existing jump features
-  - [x] Verify custom labels work with navigation between references and definitions
-  - [x] Update navigation logic to handle custom labels properly
-  - [x] Add support for jumping to custom label footnotes
+- [ ] **NEW: Ensure compatibility with existing footnote navigation**
+  - [ ] Test that backreference synchronization works with existing jump features
+  - [ ] Verify custom labels work with navigation between references and definitions
+  - [ ] Update navigation logic to handle custom labels properly
+  - [ ] Add support for jumping to custom label footnotes
 
 ## 12. **NEW: Advanced Features (Future Enhancements)**
 
@@ -119,3 +119,7 @@
   - [ ] Tooltip previews for footnote content
 
 This detailed checklist with checkboxes ensures that each step in developing your plugin will be organized, traceable, and easy to follow during project execution.
+description:
+globs:
+alwaysApply: false
+---

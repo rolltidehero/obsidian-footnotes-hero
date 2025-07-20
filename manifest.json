@@ -1,9 +1,9 @@
 {
 	"id": "obsidian-footnotes",
-	"name": "Footnote Shortcut",
-	"version": "0.0.7",
+	"name": "Footnote Backreference Synchronization",
+	"version": "0.1.0",
 	"minAppVersion": "0.9.12",
-	"description": "Insert and write footnotes faster",
+	"description": "Enhance footnote functionality by synchronizing backreference display with actual footnote labels. Replace generic backreference icons with custom label text for better navigation.",
 	"author": "Alexis Rondeau",
 	"authorUrl": "https://publish.obsidian.md/alexisrondeau",
 	"isDesktopOnly": false
