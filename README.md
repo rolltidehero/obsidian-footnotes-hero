@@ -1,153 +1,221 @@
-## Obsidian Footnotes Plugin
+# Footnote Backreference Synchronization Plugin for Obsidian
 
-This hotkey lets you:
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/rolltidehero/obsidian-footnotes-hero)
+[![Obsidian](https://img.shields.io/badge/Obsidian-0.9.12+-purple.svg)](https://obsidian.md)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-- Insert a new footnote marker (e.g. `[^1]`) with auto-incremented index in your text 
-    - Adds the footnote detail (e.g. `[^1]: `) at the bottom of your text 
-    - Places your cursor so you can fill in the details quickly
-- Jump from your footnote TO the footnote detail
-- Jump from your footnote detail BACK to the footnote 
+> **Transform your footnote experience** by replacing generic backreference icons with actual footnote labels for better navigation and clarity.
 
-![Overview](https://github.com/akaalias/obsidian-footnotes/blob/master/basic.gif?raw=true)
+## 🚀 Features
 
-## IMPORTANT: You must to set up your footnote hotkey
+### ✨ Core Functionality
+- **🔄 Real-time Synchronization**: Backreferences update automatically as you edit
+- **🎯 Custom Label Support**: Works with both numeric (`[^1]`) and custom labels (`[^video]`, `[^source]`)
+- **⚡ Performance Optimized**: Debounced updates prevent lag during editing
+- **🔗 Preserved Navigation**: All existing footnote features continue to work seamlessly
 
-After installing and activating this plugin, you still have to SET UP your hotkey. This is easy and quick:
+### 🎨 User Preferences Panel
+- **🎛️ Complete Customization**: 8 different settings to personalize your experience
+- **📱 Multiple Display Styles**: Brackets, emoji, superscript, or plain text
+- **⚙️ Performance Tuning**: Adjustable update delays for optimal performance
+- **🎯 Visual Feedback**: Hover effects and tooltips for better UX
 
-`Settings -> Hotkeys -> Search for "Footnote" -> Customize Command -> Your preferred hotkey`
+## 📸 Before & After
 
-I personally use <kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>6</kbd> because "6" on a US keyboard is where the uptick/footnote character "^" is.
+### Before (Default Obsidian)
+```markdown
+This is a sentence with a footnote[^1] and a custom label[^video].
 
-![Hotkey](https://github.com/akaalias/obsidian-footnotes/blob/master/hotkey.png?raw=true)
+[^1]: Numeric footnote definition
+[^video]: Video reference definition
+```
+*Backreferences show generic icons: ↩️ ↩️*
 
-## Default Feature Details
-### Scenario: No previous numeric (e.g. "[^1]") footnotes exist:
-- Given my cursor is where I want a footnote to exist (e.g. `Foo bar baz▊`)
-- When I hit `my footnote hotkey`
-- Then a new footnote marker (e.g. `[^1]`) is inserted where my cursor was (e.g. `Foo bar baz[^1]`)
-- And a new footnote details marker (e.g. `[^1]: `) is inserted on the last line of the document
-- And my cursor is now placed at the end of the detail marker (e.g. `[^1]: ▊`)
+### After (With Plugin)
+```markdown
+This is a sentence with a footnote[^1] and a custom label[^video].
 
-### Scenario: Previous numeric (e.g. "[^1]") footnotes exist:
-- Given there is one or more numeric footnotes in my text 
-- And my cursor is where I want a footnote to exist (e.g. `Foo bar[^1] baz▊`)
-- When I hit `my footnote hotkey`
-- Then a new footnote marker with the next numeric index (e.g. `[^2]`) is inserted where my cursor was (e.g. `Foo bar[^1] baz[^2]`)
-- And a new footnote details marker (e.g. `[^2]: `) is inserted on the last line of the document
-- And my cursor is now placed at the end of the detail marker (e.g. `[^2]: ▊`)
+[^1]: Numeric footnote definition
+[^video]: Video reference definition
+```
+*Backreferences show actual labels: [1] video*
 
-### Scenario: Jumping TO a footnote detail
-- Given I'm on a footnote detail line (e.g. `[^1]: ▊`)
-- When I hit `my footnote hotkey`
-- Then my cursor is placed right after the *first* occurence of this footnote in my text (e.g. `[^1]▊`)
+## 🛠️ Installation
 
-### Scenario: Jumping BACK to a footnote
-- Given I'm on - or next to - a footnote (e.g. `[^1]▊`) in my text
-- When I hit `my footnote hotkey`
-- Then my cursor is placed to the right of the footnote (e.g. `[^1]: ▊`)
+### Method 1: Community Plugins (Recommended)
+1. Open **Settings** → **Community Plugins**
+2. Turn off **Safe mode**
+3. Click **Browse** and search for "Footnote Backreference Synchronization"
+4. Click **Install**, then **Enable**
 
-### Known Limitations or Untested Scenarios
-#### Indices are not updated
-Inserting new footnote in-between two existing footnotes will insert the next numeric index (e.g. `1, 3, 2`). 
+### Method 2: Manual Installation
+1. Download the latest release from [GitHub Releases](https://github.com/rolltidehero/obsidian-footnotes-hero/releases)
+2. Extract the files to your vault's plugins folder:
+   ```
+   {vault}/.obsidian/plugins/obsidian-footnotes/
+   ```
+3. Enable the plugin in **Settings** → **Community Plugins**
 
-It will NOT update the indices according to their natural order (e.g. `1, 2, 3`). 
+## 🎯 Quick Start
+
+### 1. Basic Usage
+The plugin works automatically with existing footnotes:
 
 ```markdown
-Example sentence[^1] with two▊ footnotes[^2] already.
-  
-[^1]: Foo
-[^2]: Bar
+Here's a sentence with a numeric footnote[^1] and a custom label[^video].
+
+[^1]: This is a numeric footnote definition.
+[^video]: This is a video reference with custom label.
 ```
 
-After insertion:
+### 2. Customize Display
+Go to **Settings** → **Community Plugins** → **Footnote Backreference Synchronization** to customize:
 
+- **Display Style**: Choose brackets, emoji, superscript, or plain text
+- **Performance**: Adjust update delay for your workflow
+- **Visual Effects**: Enable/disable hover effects and tooltips
+
+### 3. Advanced Features
+- **Mixed Labels**: Use both numeric and custom labels in the same document
+- **Real-time Updates**: Changes apply immediately as you type
+- **Navigation**: Click backreferences to jump to footnote definitions
+
+## ⚙️ Settings Reference
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| **Enable Custom Label Display** | Toggle | ✅ | Master toggle for the feature |
+| **Display Style** | Dropdown | Brackets | Visual style for backreferences |
+| **Custom Emoji** | Text | ↩️ | Emoji for emoji display style |
+| **Show Both Label and Number** | Toggle | ❌ | Display both simultaneously |
+| **Label Priority** | Dropdown | Auto | Smart label selection |
+| **Update Delay** | Slider | 300ms | Performance tuning |
+| **Enable Hover Effects** | Toggle | ✅ | Visual feedback on hover |
+| **Show Tooltips** | Toggle | ❌ | Helpful tooltips |
+
+## 📖 Usage Examples
+
+### Academic Writing
 ```markdown
-Example sentence[^1] with two[^3] footnotes[^2] already.
-  
-[^1]: Foo
-[^2]: Bar
-[^3]: Baz
+This research builds on previous work[^smith2020] and introduces new methodology[^methodology].
+
+[^smith2020]: Smith, J. (2020). Previous research findings.
+[^methodology]: Detailed methodology description.
 ```
 
-See "Automatically Re-Index Footnotes" below for a proposed feature
-
-## Future Possible Feature Ideas
-### Automatically Re-Index Footnotes
-Re-index and re-sort all footnotes when you insert a new one in-between one or more existing numbered footnotes:
-
+### Content Creation
 ```markdown
-Example sentence[^1] with two▊ footnotes[^2] already.
-  
-[^1]: Foo
-[^2]: Bar
-```
-#### Base Scenario
-- Given there are two footnotes already
-- When I enter a new footnote in-between those two
-- Then the NEW footnote gets the index "2" 
-- And the previously second footnote gets the index "3"
-- And the NEW footnote detail is inserted as the second entry at the bottom
-- And the previously second footnote detail at the bottom is updated to be "3"
-- And the previously second footnote detail at the bottom is updated to be in third position
+Watch this tutorial[^video] and check the source code[^github].
 
+[^video]: Link to video tutorial
+[^github]: GitHub repository link
+```
+
+### Research Notes
 ```markdown
-Example sentence[^1] with two[^2] footnotes[^3] already.
+Important quote from the interview[^quote] and statistical data[^stats].
 
-[^1]: Foo
-[^2]: Baz
-[^3]: Bar▊
+[^quote]: "This is a significant finding..."
+[^stats]: 85% of participants agreed...
 ```
 
-#### Edge Cases to consider ("What if...?")
-##### What if... new footnote is inserted before the first footnote?
-  ```markdown
-  Some sentence▊ with existing note[^1]
-  
-  [^1]: Details
-  ```
-##### What if... text has the same footnote at several places?
-  ```markdown
-  Some sentence with existing note[^1] and the same▊ footnote re-appears later[^1].
+## 🎨 Display Style Examples
 
-  
-  [^1]: Details
-  ```
-##### What if...Footnote details are spread across the text?
-  ```markdown
-  Some sentence with existing note[^1] some more text▊ 
-  
-  [^1]: Inline footnote details
-  
-  Another text part▊
-  ```
-##### What if... the footnote details are multi-line on the bottom?
-  ```markdown
-  Some sentence with existing note[^1] some more text▊ 
-  
-  [^1]: The details that
-  Span across
-  Multiple lines
-  ```
-##### What if... there are non-numeric footnotes in the text?
-  ```markdown
-  Some sentence with existing note[^✝] some more text▊ 
-  
-  [^✝]: Details
-  ```
+### Brackets Style (Default)
+```
+[1] [video] [source]
+```
 
-## Background
-This plugin is based on the great idea by [jacob.4ristotle](https://forum.obsidian.md/u/jacob.4ristotle/summary) posted in the ["Footnote Shortcut"](https://forum.obsidian.md/t/footnote-shortcut/8872) thread.
+### Emoji Style
+```
+↩️ 1 ↩️ video ↩️ source
+```
 
-> **Use case or problem:**
->
-> I use Obsidian to take school notes, write essays and so on, and I find myself needing to add frequent footnotes. Currently, to add a new footnote, I need to:
-> - scroll to the bottom to check how many footnotes I already have
-> - type [^n] in the body of the note, where n is the next number
-> - move to the end of the note, type [^n] again, and then add my citation.
->
-> **Proposed solution:**
->
-> It would be convenient to have a shortcut to automate these steps. In particular, I envision that the shortcut would:
-> Using the smallest natural number n that has not yet been used for a footnote
-> - add `[^n]` at the insertion point
-> - add `[^n]: ` to the end of the note, and move the insertion point there.
+### Superscript Style
+```
+¹ ᵛⁱᵈᵉᵒ ˢᵒᵘʳᶜᵉ
+```
+
+### Plain Style
+```
+1 video source
+```
+
+## 🔧 Troubleshooting
+
+### Backreferences Not Updating
+1. ✅ Check that "Enable Custom Label Display" is enabled
+2. ✅ Verify the plugin is enabled in Community Plugins
+3. ✅ Try refreshing the document (Ctrl+R)
+4. ✅ Check the console for error messages (Ctrl+Shift+I)
+
+### Performance Issues
+1. ⚡ Increase the Update Delay setting (500-700ms for large documents)
+2. ⚡ Disable hover effects if not needed
+3. ⚡ Close unnecessary documents
+4. ⚡ Restart Obsidian if issues persist
+
+### Custom Labels Not Working
+1. 🔍 Ensure custom labels follow the format `[^label]`
+2. 🔍 Check that definitions exist at the bottom of the document
+3. 🔍 Verify the label matches exactly between reference and definition
+
+## 🚀 Advanced Features
+
+### Performance Optimization
+- **Large Documents**: Use 500-700ms update delay
+- **Frequent Editing**: Use 100-200ms for real-time feedback
+- **Mixed Content**: Enable "Show Both Label and Number" for clarity
+
+### Custom Styling
+- **Minimal Impact**: Use "Plain" display style
+- **Academic Papers**: Use "Brackets" or "Superscript"
+- **Creative Writing**: Use "Emoji" with custom symbols
+
+### Keyboard Shortcuts
+The plugin preserves all existing footnote shortcuts:
+- **Default**: `Ctrl+Shift+6` (configurable in Hotkeys settings)
+- **Function**: Insert footnote and navigate between references/definitions
+
+## 📋 Compatibility
+
+- **Obsidian Version**: 0.9.12 or higher
+- **Operating Systems**: Windows, macOS, Linux
+- **Other Plugins**: Compatible with most footnote-related plugins
+- **Themes**: Works with all Obsidian themes
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
+### Development Setup
+```bash
+git clone https://github.com/rolltidehero/obsidian-footnotes-hero.git
+cd obsidian-footnotes-hero
+npm install
+npm run build
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Obsidian Team** for the amazing platform and plugin API
+- **Community Contributors** for feedback and suggestions
+- **Beta Testers** for helping refine the user experience
+
+## 📞 Support
+
+- **📖 Documentation**: [User Guide](USER_GUIDE.md)
+- **🐛 Issues**: [GitHub Issues](https://github.com/rolltidehero/obsidian-footnotes-hero/issues)
+- **💬 Discussions**: [GitHub Discussions](https://github.com/rolltidehero/obsidian-footnotes-hero/discussions)
+- **📧 Email**: [Contact via GitHub](https://github.com/rolltidehero)
+
+---
+
+**Made with ❤️ for the Obsidian community**
+
+[![GitHub stars](https://img.shields.io/github/stars/rolltidehero/obsidian-footnotes-hero?style=social)](https://github.com/rolltidehero/obsidian-footnotes-hero)
+[![GitHub forks](https://img.shields.io/github/forks/rolltidehero/obsidian-footnotes-hero?style=social)](https://github.com/rolltidehero/obsidian-footnotes-hero)
